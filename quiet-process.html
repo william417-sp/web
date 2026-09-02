@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quiet Process</title>
-<meta name="description" content="Un registro tranquilo de hábitos, ánimo y notas personales. Todo vive en este navegador.">
+<meta name="description" content="Tareas, hábitos, metas, notas, entrenos, dinero y estudio en un solo sitio. Sin cuentas y sin nube: todo vive en este navegador.">
 <link rel="stylesheet" href="quiet-process.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='34' fill='none' stroke='%238a9a8e' stroke-width='8'/></svg>">
 </head>
@@ -16,155 +16,65 @@
       <span class="mark" aria-hidden="true"></span>
       <div>
         <h1>Quiet Process</h1>
-        <p class="tagline">Poco a poco, sin ruido.</p>
+        <p class="tagline">Todo tu sistema, sin ruido.</p>
       </div>
     </div>
     <div class="top-actions">
       <button type="button" id="themeBtn" class="icon-btn" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
-      <button type="button" id="dataBtn" class="icon-btn" title="Datos" aria-label="Datos">⋯</button>
+      <button type="button" id="dataBtn" class="icon-btn" title="Datos y ajustes" aria-label="Datos y ajustes">⋯</button>
     </div>
   </div>
   <nav class="tabs" aria-label="Secciones">
-    <button type="button" class="tab is-active" data-view="today">Hoy</button>
-    <button type="button" class="tab" data-view="habits">Hábitos</button>
-    <button type="button" class="tab" data-view="journal">Diario</button>
-    <button type="button" class="tab" data-view="review">Reflejo</button>
+    <button type="button" class="tab is-active" data-view="today"  aria-selected="true">Hoy</button>
+    <button type="button" class="tab" data-view="tasks"  aria-selected="false">Tareas</button>
+    <button type="button" class="tab" data-view="habits" aria-selected="false">Hábitos</button>
+    <button type="button" class="tab" data-view="goals"  aria-selected="false">Metas</button>
+    <button type="button" class="tab" data-view="notes"  aria-selected="false">Notas</button>
+    <button type="button" class="tab" data-view="train"  aria-selected="false">Entreno</button>
+    <button type="button" class="tab" data-view="money"  aria-selected="false">Dinero</button>
+    <button type="button" class="tab" data-view="study"  aria-selected="false">Estudio</button>
+    <button type="button" class="tab" data-view="review" aria-selected="false">Reflejo</button>
   </nav>
 </header>
 
-<main id="main">
-
-  <!-- ───────────── HOY ───────────── -->
-  <section class="view is-active" id="view-today">
-    <div class="daybar">
-      <button type="button" class="step" id="prevDay" aria-label="Día anterior">←</button>
-      <div class="daybar-label">
-        <h2 id="dayTitle">Hoy</h2>
-        <p id="daySub" class="muted"></p>
-      </div>
-      <button type="button" class="step" id="nextDay" aria-label="Día siguiente">→</button>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <h3>Prácticas de hoy</h3>
-        <span class="count" id="todayCount"></span>
-      </div>
-      <ul class="checklist" id="todayList"></ul>
-      <p class="empty" id="todayEmpty" hidden>
-        Todavía no hay hábitos. <button type="button" class="linkish" data-goto="habits">Añade el primero</button>.
-      </p>
-    </div>
-
-    <div class="card">
-      <div class="card-head"><h3>¿Cómo estuvo el día?</h3></div>
-      <div class="moods" id="moodRow" role="group" aria-label="Ánimo del día"></div>
-      <label class="field">
-        <span class="field-label">Una nota, si quieres</span>
-        <textarea id="dayNote" rows="4" placeholder="Lo que pasó, lo que costó, lo que agradeces…"></textarea>
-      </label>
-      <p class="saved" id="savedHint" aria-live="polite"></p>
-    </div>
-  </section>
-
-  <!-- ───────────── HÁBITOS ───────────── -->
-  <section class="view" id="view-habits">
-    <div class="card">
-      <div class="card-head"><h3 id="formTitle">Nuevo hábito</h3></div>
-      <form id="habitForm" class="habit-form" autocomplete="off">
-        <input type="hidden" id="habitId">
-        <label class="field">
-          <span class="field-label">Nombre</span>
-          <input type="text" id="habitName" maxlength="60" required placeholder="Caminar 20 minutos">
-        </label>
-        <label class="field">
-          <span class="field-label">Intención <span class="muted">(opcional)</span></span>
-          <input type="text" id="habitNote" maxlength="120" placeholder="Para despejar la cabeza antes de trabajar">
-        </label>
-        <fieldset class="field">
-          <legend class="field-label">Días</legend>
-          <div class="cadence">
-            <label><input type="radio" name="cadence" value="daily" checked> Todos los días</label>
-            <label><input type="radio" name="cadence" value="weekdays"> Entre semana</label>
-            <label><input type="radio" name="cadence" value="custom"> Elegir días</label>
-          </div>
-          <div class="daypicker" id="dayPicker" hidden></div>
-        </fieldset>
-        <fieldset class="field">
-          <legend class="field-label">Color</legend>
-          <div class="swatches" id="swatches"></div>
-        </fieldset>
-        <div class="form-actions">
-          <button type="submit" class="btn primary" id="habitSubmit">Añadir</button>
-          <button type="button" class="btn ghost" id="habitCancel" hidden>Cancelar</button>
-        </div>
-      </form>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <h3>Tus hábitos</h3>
-        <label class="toggle"><input type="checkbox" id="showArchived"> ver archivados</label>
-      </div>
-      <ul class="habit-list" id="habitList"></ul>
-      <p class="empty" id="habitsEmpty" hidden>Nada aquí todavía. Empieza con uno solo — de verdad, uno.</p>
-    </div>
-  </section>
-
-  <!-- ───────────── DIARIO ───────────── -->
-  <section class="view" id="view-journal">
-    <div class="card">
-      <div class="card-head"><h3>Diario</h3></div>
-      <label class="field">
-        <span class="field-label">Buscar</span>
-        <input type="search" id="journalSearch" placeholder="una palabra…">
-      </label>
-      <ol class="entries" id="journalList"></ol>
-      <p class="empty" id="journalEmpty" hidden>Sin entradas todavía. Las notas que escribas en «Hoy» aparecen aquí.</p>
-    </div>
-  </section>
-
-  <!-- ───────────── REFLEJO ───────────── -->
-  <section class="view" id="view-review">
-    <div class="card">
-      <div class="card-head">
-        <h3>Últimas semanas</h3>
-        <span class="count" id="rangeLabel"></span>
-      </div>
-      <div class="stats" id="statRow"></div>
-      <div class="grids" id="gridWrap"></div>
-      <p class="empty" id="reviewEmpty" hidden>Cuando tengas hábitos y algunos días marcados, aquí verás el patrón.</p>
-    </div>
-
-    <div class="card">
-      <div class="card-head"><h3>Ánimo</h3></div>
-      <div class="moodchart" id="moodChart"></div>
-      <p class="muted small">Últimos 30 días. Los huecos son días sin registrar — también cuentan como parte del proceso.</p>
-    </div>
-  </section>
-
+<main>
+  <section class="view is-active" id="view-today"></section>
+  <section class="view" id="view-tasks"></section>
+  <section class="view" id="view-habits"></section>
+  <section class="view" id="view-goals"></section>
+  <section class="view" id="view-notes"></section>
+  <section class="view" id="view-train"></section>
+  <section class="view" id="view-money"></section>
+  <section class="view" id="view-study"></section>
+  <section class="view" id="view-review"></section>
 </main>
 
-<!-- ───────────── DATOS ───────────── -->
 <dialog id="dataDialog">
-  <form method="dialog" class="dialog-inner">
+  <div class="dialog-inner">
     <h3>Tus datos</h3>
-    <p class="muted small">Todo se guarda solo en este navegador. Nada se envía a ningún servidor. Si limpias los datos del sitio, se van.</p>
-    <div class="dialog-actions">
-      <button type="button" class="btn" id="exportBtn">Exportar copia (.json)</button>
-      <button type="button" class="btn" id="importBtn">Importar copia</button>
-      <input type="file" id="importFile" accept="application/json,.json" hidden>
-      <button type="button" class="btn danger" id="wipeBtn">Borrar todo</button>
-    </div>
+    <p class="muted small">Todo se guarda solo en este navegador. Nada sale a ningún servidor, así que nada se sincroniza entre dispositivos: exporta una copia de vez en cuando.</p>
+    <div id="dataBody"></div>
     <p class="dialog-msg" id="dataMsg" aria-live="polite"></p>
-    <div class="dialog-close"><button class="btn ghost" value="close">Cerrar</button></div>
-  </form>
+    <form method="dialog" class="dialog-close">
+      <button class="btn ghost" value="close">Cerrar</button>
+    </form>
+  </div>
 </dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <footer class="foot">
   <p>Quiet Process · sin cuentas, sin nube, sin rachas que te griten.</p>
 </footer>
 
-<script src="quiet-process.js"></script>
+<script src="qp/core.js"></script>
+<script src="qp/tasks.js"></script>
+<script src="qp/goals.js"></script>
+<script src="qp/notes.js"></script>
+<script src="qp/train.js"></script>
+<script src="qp/money.js"></script>
+<script src="qp/study.js"></script>
+<script src="qp/review.js"></script>
+<script src="qp/boot.js"></script>
 </body>
 </html>
