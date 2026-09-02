@@ -3,19 +3,31 @@
   "use strict";
   var Q = QP;
 
+  /* El tema por defecto es oscuro. Quien prefiera otra cosa la elige con el
+     botón y su elección manda: "system" queda guardada como decisión, no como
+     ausencia de decisión, para que el arranque no vuelva a poner oscuro. */
+  var DEFAULT_THEME = "dark";
+
+  function storedTheme() {
+    try {
+      var t = localStorage.getItem(Q.THEME_KEY);
+      if (t === "light" || t === "dark" || t === "system") return t;
+    } catch (e) { /* modo privado */ }
+    return DEFAULT_THEME;
+  }
+
   function applyTheme(t) {
     if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
-    else document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.removeAttribute("data-theme");   // "system"
   }
+
   function cycleTheme() {
-    var cur = document.documentElement.getAttribute("data-theme");
-    var next = cur === "light" ? "dark" : cur === "dark" ? "" : "light";
+    var order = ["dark", "light", "system"];
+    var next = order[(order.indexOf(storedTheme()) + 1) % order.length];
     applyTheme(next);
-    try {
-      if (next) localStorage.setItem(Q.THEME_KEY, next);
-      else localStorage.removeItem(Q.THEME_KEY);
-    } catch (e) { /* modo privado */ }
-    Q.toast(next === "light" ? "Tema claro." : next === "dark" ? "Tema oscuro." : "Tema del sistema.");
+    try { localStorage.setItem(Q.THEME_KEY, next); } catch (e) { /* modo privado */ }
+    Q.toast(next === "dark" ? "Tema oscuro."
+      : next === "light" ? "Tema claro." : "Tema del sistema.");
     Q.refresh();
   }
 
@@ -171,7 +183,7 @@
 
   /* ── arranque ─────────────────────────────────────────────────────────── */
   function init() {
-    try { applyTheme(localStorage.getItem(Q.THEME_KEY)); } catch (e) { /* privado */ }
+    applyTheme(storedTheme());
 
     Q.$$(".tab").forEach(function (t) {
       Q.on(t, "click", function () { Q.show(t.dataset.view); });

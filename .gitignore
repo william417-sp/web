@@ -1,0 +1,4 @@
+# Intermedio del empaquetado: sólo sirve para publicar el artifact y se
+# regenera con `node build-standalone.js`. El entregable versionado es
+# quiet-process.standalone.html.
+.artifact/

@@ -226,6 +226,7 @@ var QP = (function () {
     if (!d.settings.currency) d.settings.currency = "EUR";
     if (!d.settings.locale) d.settings.locale = "es-ES";
     if (!d.createdAt) d.createdAt = key(today());
+    d.demo = !!d.demo;
     d.version = 2;
     return d;
   }
@@ -281,7 +282,12 @@ var QP = (function () {
     box.textContent = text;
     box.className = "toast is-on" + (isError ? " is-error" : "");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { box.className = "toast"; }, 3200);
+    toastTimer = setTimeout(function () {
+      box.className = "toast";
+      // Se vacía además de ocultarse: es un aria-live, y dejar el texto viejo
+      // dentro es dejarlo al alcance de un lector de pantalla.
+      box.textContent = "";
+    }, 3200);
   }
 
   /* ── router ───────────────────────────────────────────────────────────── */
@@ -296,10 +302,21 @@ var QP = (function () {
       t.setAttribute("aria-selected", String(t.dataset.view === name));
     });
     $$(".view").forEach(function (v) {
-      v.classList.toggle("is-active", v.id === "view-" + name);
+      var active = v.id === "view-" + name;
+      v.classList.toggle("is-active", active);
+      // Las vistas ocultas se vacían: si no, arrastran DOM viejo (un aviso ya
+      // retirado, un canvas del grafo, una lista de mil filas) que sólo se
+      // rehace al volver a entrar.
+      if (!active) clear(v);
     });
     try { localStorage.setItem("quiet-process.tab", name); } catch (e) { /* privado */ }
     views[name]();
+    // El aviso de datos de ejemplo va en todas las vistas, no sólo en Hoy.
+    if (name !== "today" && QP.demo) {
+      var bar = QP.demo.banner();
+      var host = $("#view-" + name);
+      if (bar && host) host.insertBefore(bar, host.firstChild);
+    }
     window.scrollTo({ top: 0, behavior: "instant" });
   }
   function refresh() { if (current && views[current]) views[current](); }
@@ -550,13 +567,108 @@ var QP = (function () {
     return out;
   }
 
-  function download(name, text, mime) {
+  /* ── guardar archivos ─────────────────────────────────────────────────────
+     Hay tres mundos y la app corre en los tres:
+       · archivo local o hosting normal → un <a download> basta;
+       · dentro del visor de artifacts   → los enlaces de descarga son inertes,
+         hay que pedirlo por la capacidad "downloads", que enseña al usuario
+         una confirmación y puede decir que no;
+       · visor sin esa capacidad         → no hay forma de entregar un archivo,
+         así que se le enseña el contenido para que lo copie.
+     Se sondea al cargar para que al pulsar ya esté resuelto. */
+  var hosted = !!(typeof window !== "undefined" && window.claude &&
+    typeof window.claude.use === "function");
+  var saverPromise = null;
+
+  function saver() {
+    if (saverPromise) return saverPromise;
+    saverPromise = new Promise(function (resolve) {
+      if (!hosted) { resolve(null); return; }
+      try {
+        window.claude.use("downloads").then(
+          function (d) { resolve(d || null); },
+          function () { resolve(null); }
+        );
+      } catch (e) { resolve(null); }
+    });
+    return saverPromise;
+  }
+  if (hosted) saver();
+
+  function anchorSave(name, text, mime) {
     var blob = new Blob([text], { type: mime || "application/json" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url; a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  /* Último recurso: el contenido a la vista, seleccionado, con botón de copiar. */
+  function copyFallback(name, text) {
+    var dlg = $("#copyDialog");
+    if (!dlg) {
+      dlg = el("dialog");
+      dlg.id = "copyDialog";
+      document.body.appendChild(dlg);
+    }
+    clear(dlg);
+    var box = el("div", "dialog-inner");
+    box.appendChild(el("h3", null, "Copia tus datos"));
+    box.appendChild(el("p", "muted small",
+      "Aquí no se pueden descargar archivos. Copia este texto y guárdalo como «" +
+      name + "» — vale igual para reimportarlo luego."));
+    var ta = input("textarea", { rows: 10, readonly: "readonly", spellcheck: "false" });
+    ta.className = "copy-box";
+    ta.value = text;
+    box.appendChild(ta);
+    var acts = el("div", "form-actions");
+    acts.appendChild(btn("btn primary", "Copiar al portapapeles", function () {
+      ta.select();
+      var done = function () { toast("Copiado."); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () {
+          toast("No pude copiarlo. Selecciona el texto y usa Ctrl+C.", true);
+        });
+      } else {
+        try { document.execCommand("copy"); done(); }
+        catch (e) { toast("Selecciona el texto y usa Ctrl+C.", true); }
+      }
+    }));
+    acts.appendChild(btn("btn ghost", "Cerrar", function () { dlg.close(); }));
+    box.appendChild(acts);
+    dlg.appendChild(box);
+    if (typeof dlg.showModal === "function") dlg.showModal();
+    else dlg.setAttribute("open", "");
+    ta.focus();
+    ta.select();
+  }
+
+  function download(name, text, mime) {
+    saver().then(function (d) {
+      if (!d) {
+        // Fuera del visor el enlace funciona; dentro, no hay nada que hacer
+        // salvo enseñar el texto.
+        if (hosted) copyFallback(name, text);
+        else anchorSave(name, text, mime);
+        return;
+      }
+      d.save({ filename: name, data: text }).then(function () {
+        toast("Guardado.");
+      }, function (err) {
+        var code = err && err.code;
+        if (code === "declined") return;                 // dijo que no: sin ruido
+        if (code === "rate_limited") {
+          toast("Hay otra descarga esperando respuesta. Inténtalo en un momento.", true);
+          return;
+        }
+        if (code === "too_large") {
+          toast("La copia es demasiado grande para descargarla aquí.", true);
+          return;
+        }
+        copyFallback(name, text);
+      });
+    });
   }
 
   try {
@@ -583,6 +695,7 @@ var QP = (function () {
     toast: toast, view: view, show: show, refresh: refresh,
     isDark: isDark, series: series,
     lineChart: lineChart, barList: barList, columns: columns,
-    parseCSV: parseCSV, sniffDelimiter: sniffDelimiter, parseOFX: parseOFX, download: download
+    parseCSV: parseCSV, sniffDelimiter: sniffDelimiter, parseOFX: parseOFX,
+    hosted: function () { return hosted; }, download: download
   };
 })();

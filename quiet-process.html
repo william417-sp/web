@@ -6,6 +6,13 @@
 <title>Quiet Process</title>
 <meta name="description" content="Tareas, hábitos, metas, notas, entrenos, dinero y estudio en un solo sitio. Sin cuentas y sin nube: todo vive en este navegador.">
 <link rel="stylesheet" href="quiet-process.css">
+<script>
+/* Se marca el tema antes de pintar nada: si esto esperase a los scripts del
+   final del body, la página daría un destello blanco en cada carga. */
+(function(){var t;try{t=localStorage.getItem("quiet-process.theme");}catch(e){}
+if(t!=="light"&&t!=="dark"&&t!=="system")t="dark";
+if(t!=="system")document.documentElement.setAttribute("data-theme",t);})();
+</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='34' fill='none' stroke='%238a9a8e' stroke-width='8'/></svg>">
 </head>
 <body>
@@ -75,6 +82,7 @@
 <script src="qp/money.js"></script>
 <script src="qp/study.js"></script>
 <script src="qp/review.js"></script>
+<script src="qp/demo.js"></script>
 <script src="qp/boot.js"></script>
 </body>
 </html>

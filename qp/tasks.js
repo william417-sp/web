@@ -391,6 +391,14 @@
     Q.clear(v);
     var k = Q.key(cursor);
 
+    // Primera visita: portada en vez de nueve pestañas vacías.
+    if (QP.demo && QP.demo.shouldWelcome()) {
+      v.appendChild(QP.demo.welcome());
+      return;
+    }
+    var bar0 = QP.demo && QP.demo.banner();
+    if (bar0) v.appendChild(bar0);
+
     var bar = Q.el("div", "daybar");
     bar.appendChild(Q.btn("step", "←", function () {
       cursor = Q.addDays(cursor, -1); renderToday();

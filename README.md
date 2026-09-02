@@ -10,7 +10,11 @@ de [rimu](https://www.rimuapp.com/), pero sin cuentas y sin nube: todo vive en
 el `localStorage` de tu navegador.
 
 Se abre con doble clic. No hay build ni dependencias — scripts clásicos, por eso
-funciona desde `file://` sin servidor.
+funciona desde `file://` sin servidor. Arranca en **tema oscuro**; el botón `◐`
+cicla oscuro → claro → el del sistema, y tu elección se recuerda.
+
+La primera vez que la abres te ofrece **datos de ejemplo** para ver de qué va
+sin escribir nada. Se borran de un clic y no tocan nada tuyo.
 
 ### Las nueve secciones
 
@@ -27,6 +31,30 @@ funciona desde `file://` sin servidor.
 | **Reflejo** | Mapas de calor de 12 semanas, cifras del proceso, ánimo de 30 días y el diario. |
 
 Atajos: teclas `1`–`9` para saltar de pestaña (inertes mientras escribes).
+
+### Ponerla en la web
+
+Hay dos archivos, y el que necesitas depende de dónde la subas:
+
+- **Multi-archivo** (`quiet-process.html` + `quiet-process.css` + `qp/*.js`) —
+  para cualquier hosting normal o para trabajar en el código.
+- **Un solo archivo** (`quiet-process.standalone.html`, ~180 KB) — todo
+  incrustado dentro. Lo generas con `node build-standalone.js` y lo puedes
+  mandar por correo, meter en un pendrive o subir suelto a cualquier sitio.
+
+> El archivo único **se genera**: los cambios van siempre en el multi-archivo y
+> luego se reconstruye. Lleva una cabecera que lo recuerda.
+
+**GitHub Pages.** El repo ya sirve tal cual; sólo falta activarlo, y eso es un
+interruptor de ajustes que tienes que dar tú:
+
+1. Fusiona esta rama en `main`.
+2. *Settings → Pages → Source: Deploy from a branch → `main` / `(root)`*.
+3. La app queda en `https://<usuario>.github.io/web/quiet-process.html`.
+
+Ojo con una trampa de GitHub Pages: busca `index.html` en minúscula, y en la
+raíz sólo hay `Index.html`. Mientras no exista el de minúscula, la portada del
+sitio dará 404 aunque la app funcione perfectamente en su URL.
 
 ### Dónde viven los datos
 
@@ -65,7 +93,9 @@ qp/train.js             Entrenamientos y récords
 qp/money.js             Dinero, cuotas e importación
 qp/study.js             Pomodoro, asignaturas y horas
 qp/review.js            Reflejo y diario
+qp/demo.js              portada de bienvenida y datos de ejemplo
 qp/boot.js              arranque, tema, panel de datos
+build-standalone.js     empaqueta todo en un archivo único
 ```
 
 ### Decisiones que conviene conocer
@@ -81,6 +111,13 @@ qp/boot.js              arranque, tema, panel de datos
   deja la coma como decimal.
 - **Nada de `innerHTML` con texto tuyo** — todo se construye con
   `createElement`/`textContent`.
+- **Guardar archivos tiene tres caminos** según dónde corra: un `<a download>`
+  en local o en un hosting normal; la capacidad `downloads` dentro del visor de
+  artifacts, donde los enlaces de descarga son inertes; y enseñar el contenido
+  para copiarlo si no hay ninguna de las dos. Sin esto, «Exportar copia» no
+  haría nada y en silencio.
+- **El tema se marca antes de pintar**, con un script mínimo en el `<head>`. Si
+  esperase a los scripts del final, cada carga daría un destello blanco.
 - **Los colores de los gráficos** salen de una paleta categórica verificada con
   un validador de contraste y daltonismo, en orden fijo y sin ciclar. Los tonos
   apagados de hábitos y metas son identidad de interfaz, no escala de gráfico, y

@@ -186,6 +186,7 @@
     var css = getComputedStyle(document.documentElement);
     var ink = css.getPropertyValue("--ink").trim() || "#2c2f2c";
     var faint = css.getPropertyValue("--line").trim() || "#ddd8ce";
+    var ground = css.getPropertyValue("--bg").trim() || "#f4f2ed";
     var KIND = {
       note: { c: Q.series(0), r: 6 }, goal: { c: Q.series(1), r: 9 },
       subject: { c: Q.series(2), r: 8 }, task: { c: Q.series(3), r: 5 },
@@ -267,10 +268,17 @@
           ctx.stroke();
         }
         if (hover === n || n.deg > 1 || g.nodes.length < 18) {
-          ctx.fillStyle = ink;
-          ctx.globalAlpha = hover === n ? 1 : 0.72;
           var label = n.label.length > 22 ? n.label.slice(0, 21) + "…" : n.label;
-          ctx.fillText(label, x, y + r + 13);
+          var ly = y + r + 13;
+          // Un fondo detrás del texto: sin él, dos etiquetas que se cruzan se
+          // vuelven ilegibles justo donde el grafo está más apretado.
+          var w = ctx.measureText(label).width;
+          ctx.globalAlpha = hover === n ? 0.95 : 0.8;
+          ctx.fillStyle = ground;
+          ctx.fillRect(x - w / 2 - 3, ly - 9, w + 6, 13);
+          ctx.globalAlpha = hover === n ? 1 : 0.8;
+          ctx.fillStyle = ink;
+          ctx.fillText(label, x, ly);
           ctx.globalAlpha = 1;
         }
       });
